@@ -1,7 +1,10 @@
 <template> 
-  <div  class="search-page">
-
-    <searchbar :id="`search`" 
+<div  class="search-page">
+    <div class="background">
+        <div class="title">The WayBack 🚀</div>
+        <div class="sub-title">Powered by Meilisearch</div>
+    </div>
+    <searchbar :id="`search`" @changed="search" 
     v-model="formVariables[`search`]"/>
     <div class="filter-results-filter-container">
         <div name="filters">
@@ -15,7 +18,7 @@
                         <div class="filtername">FilterName</div>
                         <dropdown :id="`${item}_filter`" 
                         v-model="formVariables[`${item}_filter`]"
-                        :selection="['ascending','descending']"
+                        :selection="filterableOptions[`${item}`]"
                         @changed="search"/>
                     </div>
                 </div>
@@ -29,13 +32,13 @@
                         <div class="filtername">FilterName</div>
                         <dropdown :id="`${item}_sort`" 
                         v-model="formVariables[`${item}_sort`]"
-                        :selection="['ascending','descending']"
+                        :selection="sortableOptions"
                         @changed="search"/>
                     </div>
                 </div>
                 <div class="filter-title">Available Feilds</div>
                 <div class="feilds-container">
-                    <div class="feild" v-for="item in filterable">
+                    <div class="feild" v-for="item in availableFeilds">
                         <check :id="`${item}_attribute_check`" 
                         v-model="formVariables[`${item}_attribute_check`]"
                         @changed="search"/>
@@ -44,17 +47,17 @@
                 </div>
             </div>
         </div>
-        <div class="searches">
-            {{formVariables}}
-        </div>
+        <searchesTable :searchData="formVariables"/>
     </div>
-  </div>
+</div>
 </template>
 
 <script>
 import searchbar from './searchbar.vue'
 import dropdown from './dropdown.vue'
 import check from './check.vue'
+import searchesTable from './searchesTable.vue'
+
 
 import { MeiliSearch } from 'meilisearch'
 const client = new MeiliSearch({
@@ -64,20 +67,36 @@ const index = client.index('indexUID')
 
 export default {
   name: "dev",
-  components: { dropdown, check, searchbar},
+  components: { searchbar, dropdown, check, searchesTable},
   data(){
     return{
-        filterable:["foo","bar"],
-        sortable:["date","valuation"],
-        availableFeilds:["foo","bar","date","valuation"],
+        filterable:[],
+        filterableOptions: {},
+        sortable:[],
+        sortableOptions: ['ascending','descending'],
+        availableFeilds:[],
         formVariables : {
-        }
+        },
+        searchData: {}
     }
+  },
+  created(){
+    this.init()
   },
   mounted(){
     this.search()
   },
   methods: {
+    async init(){
+        this.filterable        = ["foo","bar"]
+        this.sortable          = ["date","valuation"]
+        //this.availableFeilds   = ["foo","bar","date","valuation"]
+        this.filterableOptions =
+        {
+            "foo" : ["e", "er", "san", "su"],
+            "bar" : ["u", "liu", "chi", "ba", "jo"]
+        }
+    },
     async search(){
         console.log("searching")
         const form         = this.formVariables
@@ -93,15 +112,15 @@ export default {
             else if(key.includes("check")){
                 if (form[key]===true){
                     if (key.includes("filter")){
-                        const filter   = form[key].match(/[^_]*/)[0]
-                        const selected = form[`${key}_filter`]
+                        const filter   = key.match(/[^_]*/)[0]
+                        const selected = form[`${filter}_filter`]
                         filters.push(
                             `${filter} = ${selected}`
                         )
                     }
                     else if (key.includes("sort")){
-                        const sort     = form[key].match(/[^_]*/)[0]
-                        const selected = form[`${key}_sort`]
+                        const sort     = key.match(/[^_]*/)[0]
+                        let   selected = form[`${filter}_sort`]
                         if (selected.includes("asc")){
                             selected = "asc"
                         }else{
@@ -114,7 +133,8 @@ export default {
                 }
             }
         })
-        /* search db */
+        console.log(filters,sorts)
+        /* search db 
         results = await index.search(
             typesearch,
             {
@@ -130,8 +150,25 @@ export default {
 </script>
 
 <style scoped>
+.background{
+    margin-top:0px;
+    /* background-image: url("background.jpg"); */
+}
 .search-page{
+    top:0px;
+    padding:0px;
     color: #c9d1d9;
+}
+.title{
+    margin-top:0px;
+    text-align:center;
+    font-size:35px;
+}
+.sub-title{
+    text-align:center;
+    color: grey;
+    font-size:18px;
+
 }
 .filter-results-filter-container{
     display: grid;
@@ -194,9 +231,4 @@ export default {
     grid-template-columns: auto auto;
     grid-gap: 10px; 
 }
-.searches{
-    height: 600px;
-    background: #161b22;
-}
-
 </style>

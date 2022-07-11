@@ -64,7 +64,6 @@ export default {
     outline: none;
 }
 
-/* The container */
 .container {
   display: block;
   position: relative;

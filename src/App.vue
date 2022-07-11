@@ -22,6 +22,7 @@ export default {
 <style>
 body{
   margin: 0;
+  padding: 0;
   display: grid;
   width: 100vw;
   align-items: center;
