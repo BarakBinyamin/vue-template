@@ -117,21 +117,28 @@ export default {
         try{
             /* connect to host, init index options */
             const host  = this.meilisearchsettings['host']
+            console.log("Host",host)
             const client = new MeiliSearch({"host": host})
+            console.log("Host",host)
+
             this.indexes = []
-            const results = await client.getIndexes()
+            const url   = host  + "/indexes/"
+            let results = await (await fetch(url)).json()
+            results= results['results']
             results.forEach(item=>{this.indexes.push(item['uid'])})
 
             /* connect to index, init content settings options */
             try{
                 const index = this.meilisearchsettings['index']
-                this.index  = client.index(index)
-                this.filterable        = await this.index.getFilterableAttributes()
-                this.sortable          = await this.index.getSortableAttributes()
-                this.selectedFeilds    = [...this.filterable, ...this.sortable]
-                this.filterableOptions = {}
-                //this.availableFeilds   = ["foo","bar","date","valuation"]
-                console.log(this.selectedFeilds)
+                if (index){
+                    this.index  = client.index(index)
+                    this.filterable        = await this.index.getFilterableAttributes()
+                    this.sortable          = await this.index.getSortableAttributes()
+                    this.selectedFeilds    = [...this.filterable, ...this.sortable]
+                    this.filterableOptions = {}
+                    //this.availableFeilds   = ["foo","bar","date","valuation"]
+                    console.log(this.selectedFeilds)
+                }
             }
             catch(err){
                 console.log("INIT index connection error:",err)
@@ -231,7 +238,7 @@ export default {
                     sort: []
                 }
             )
-            console.log(this.searchData)
+            console.log(this.searchData['hits'])
         }catch(err){
             console.log(err)
         }

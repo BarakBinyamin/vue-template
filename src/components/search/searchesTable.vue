@@ -14,17 +14,15 @@ export default {
   data() {
     return {
       feilds: this.selectedFeilds,
+      structuredSearchData: this.searchData,
       results : []
     }
-  },
-  created(){
-    this.max()
   },
   methods:{
     getData(){
       let hits = []
       try{
-        this.searchData['hits'].forEach(item=>{
+        this.structuredSearchData['hits'].forEach(item=>{
           this.selectedFeilds.forEach(feild=>{
             hits.push(item[feild])
           })
@@ -34,14 +32,21 @@ export default {
       }
       this.results = hits 
     },
-    max(){
+    async setNumberOfFeilds(){
+      let numberOfFeilds = this.feilds.length
       document.documentElement.style.setProperty('--searchesTable', 
-      `auto auto auto auto auto`);
+      numberOfFeilds);
     }
   },
   watch: {
     selectedFeilds:function(value){
       this.feilds = value
+      this.setNumberOfFeilds()
+      console.log("feilds:", this.feilds)
+      this.getData()
+    },
+    searchData:function(value){
+      this.structuredSearchData = value
       this.getData()
     }
   }
@@ -51,7 +56,7 @@ export default {
 <style scoped>
 .searches{
     display: grid;
-    grid-template-columns: var(--searchesTable);
+    grid-template-columns: repeat(var(--searchesTable), auto);
     grid-gap: 0px;
     background: #161b22;
     width: 1000px;
