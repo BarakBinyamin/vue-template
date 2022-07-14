@@ -120,7 +120,8 @@ export default {
         try{
             const client = new MeiliSearch({"host": host})
             this.indexes = []
-            await client.getIndexes()['results'].forEach(item=>{this.indexes.push(item['uid'])})
+            const results = await client.getIndexes()
+            results['results'].forEach(item=>{this.indexes.push(item['uid'])})
             this.index   = client.index(index)
             this.filterable        = await this.index.getFilterableAttributes()
             this.sortable          = await this.index.getSortableAttributes()
