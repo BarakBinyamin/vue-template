@@ -126,13 +126,10 @@ export default {
             this.sortable          = await this.index.getSortableAttributes()
             this.selectedFeilds    = [...this.filterable, ...this.sortable]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
-            this.filterableOptions =
-            {
-                "foo" : ["e", "er", "san", "su"],
-                "bar" : ["u", "liu", "chi", "ba", "jo"]
-            }
+            this.filterableOptions = {}
         }
         catch (err){
+            console.log(err)
             this.filterable        = ["foo","bar"]
             this.sortable          = ["date","valuation"]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
@@ -187,7 +184,7 @@ export default {
     async search(){
         console.log("searching")   
         await this.updateFilters()     
-        /* fake data */
+        /* fake data
         this.searchData = [...this.filters, ...this.sorts, this.searchString]
         this.searchData = {
                             "hits": [
@@ -222,7 +219,10 @@ export default {
                     sort: this.sorts
                 }
             )
-        }catch{}
+            console.log(this.searchData)
+        }catch(err){
+            console.log(err)
+        }
         /* populate searches */
 
     }
