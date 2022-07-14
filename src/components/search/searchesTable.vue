@@ -1,6 +1,6 @@
 <template>
     <div class="searches">
-      <div class="th" v-for="feild in selectedFeilds">{{feild}}</div>
+      <div class="th" v-for="feild in feilds">{{feild}}</div>
       <div  class="item" v-for="item in getData()">
           {{item}}
       </div>
@@ -13,6 +13,7 @@ export default {
   props: ["searchData", "selectedFeilds"],
   data() {
     return {
+      feilds: this.selectedFeilds
     }
   },
   created(){
@@ -31,9 +32,13 @@ export default {
       return hits 
     },
     max(){
-
       document.documentElement.style.setProperty('--searchesTable', 
       `auto auto auto auto auto`);
+    }
+  },
+  watch: {
+    selectedFeilds:function(value){
+      this.feilds = value
     }
   }
 }
