@@ -128,6 +128,7 @@ export default {
             this.selectedFeilds    = [...this.filterable, ...this.sortable]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
             this.filterableOptions = {}
+            console.log(this.selectedFeilds)
         }
         catch (err){
             console.log("INIT:",err)
