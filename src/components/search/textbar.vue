@@ -1,31 +1,36 @@
 <template>
     <div>
-        <div class="searchbar-container">
-            <input v-model="localValue" class="searchbar"  
-            placeholder="search"/>
+        <div class="textbar-container">
+            <div class="label">{{label}}</div>
+            <input @keyup.enter="changed" v-model="localValue" class="textbar"  
+            :placeholder="placeholder"/>
+        </div>
+        <div class="progress-container">
+            <div :class="{progress:show}"></div>
         </div>
     </div>
 </template>
 
 <script>
 /*
-This is a searchbar that saves its state from reload to reload
+This is a textbar that saves its state from reload to reload
 The component uses the following attributes:
 id            - unique identifier, use this to find the component
 modelValue    - attribute to access the selected option through v-model
 @changed      - event emited when the selected is changed, this event contains the value selected
 
-usage: <searchbar :id="`<unique_id>`" 
+usage: <textbar :id="`<unique_id>`" 
 v-model="`<variable>`"/>
 
 References: https://stackoverflow.com/questions/46258763/using-v-model-on-custom-component
 */
 export default {
-  props: ["id", "modelValue"],
+  props: ["id", "label", "placeholder", "modelValue"],
   data() {
     return {
         storageName : this.id,
-        localValue: this.init()
+        localValue: this.init(),
+        show: false
     }
   },
   methods:{
@@ -40,13 +45,16 @@ export default {
             this.$emit("update:modelValue", defaultSelction)
             return defaultSelction
         }
+    },
+    changed(){
+        this.$emit("changed", this.localValue)
+        this.show = true
     }
   },
    watch: {
       localValue: function () {
         //console.log(`changed ${this.storageName}`)
         this.$emit("update:modelValue", this.localValue) 
-        this.$emit("changed", this.localValue)
         this.$cookies.set(this.storageName, this.localValue)
       },
   }
@@ -54,29 +62,49 @@ export default {
 </script>
 
 <style scoped>
-.searchbar-container{
+.label{
+    color:black;
+    padding:0px 0px 5px  35px;
+    justify-items: left;
+}
+.textbar-container{
     display: grid;
-    justify-items: center;
-    justify-content: center;
     margin: 10px;
+    height: 15px;
 }
-.searchbar{
-    width: 500px;
+
+.textbar{
+    justify-self: center;
+    width: 200px;
+    height: 20px;
     padding: 5px;
-    font-size: 25px;
-    border-radius: 5px;
-    border: 1px solid #30363d;
-    background: #0d1117;
-    color: #c9d1d9;
-    font-family: inherit;
-    box-shadow: 0px 1px 5px 1px rgba(255,255,255,.2);
+    margin: 0;
 }
-@media only screen and (max-width: 600px) {
-    .searchbar{
-        width: 300px;
-    }
-}
-.searchbar:focus{
+
+.textbar:focus{
     outline: none;
 }
+
+.progress-container{
+    display: grid;
+}
+
+.progress{
+    display: block;
+    padding: 6px;
+    width: 200px;
+    height: 20px;
+    margin-left: 44px;
+    justify-self: left;
+    opacity: 1;
+    background: rgba(0, 128, 0, .4);
+    animation-name: progress;
+    animation-duration: 1s;
+    pointer-events: none;
+}
+
+@keyframes progress {
+  from { width: 0%;   }
+  to   { width: 200px; }
+} 
 </style>

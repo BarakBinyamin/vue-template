@@ -34,7 +34,7 @@ export default {
   methods:{
     init() {
         const storageName     = this.id
-        const state           = this.$cookies.get(storageName)
+        const state           = this.$cookies.get(storageName)=== 'true'
         const defaultSelction = false
         if (state){
             this.$emit("update:modelValue", state)
