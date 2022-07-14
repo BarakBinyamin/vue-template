@@ -2,52 +2,64 @@
 <div  class="search-page">
     <div class="background">
         <div class="title-container">
-            <div class="title">The WayBack 🚀</div>
+            <div class="title">The WayBack</div>
             <div class="settings" @click="meilisearchsettings['show']=true">⚙️</div>
             <settingsModal v-model="meilisearchsettings"
             @changed="init" :toggle="meilisearchsettings['show']"/>
         </div>
         <div class="sub-title">Powered by Meilisearch</div>
     </div>
-    <searchbar :id="`search`" @changed="search" 
-    v-model="formVariables[`search`]"/>
+    <div class="searchbar-container">
+        <searchbar :id="`search`" @changed="search" 
+        v-model="formVariables[`search`]"/>
+        <searchDropdown id="index" 
+        v-model="meilisearchsettings[`index`]"
+        :selection="indexes"
+        @changed="search"/>
+    </div>
     <div class="filter-results-filter-container">
         <div name="filters">
             <div class="filters">
-                <div id="foo" class="filter-title">Filters</div>
-                <div class="filters-container">
-                    <div class="filter" v-for="item in filterable">
-                        <check :id="`${item}_filter_check`" 
-                        v-model="formVariables[`${item}_filter_check`]"
-                        @changed="search"/>
-                        <div class="filtername">{{item}}</div>
-                        <dropdown :id="`${item}_filter`" 
-                        v-model="formVariables[`${item}_filter`]"
-                        :selection="filterableOptions[`${item}`]"
-                        @changed="search"/>
+                <div>
+                    <div id="foo" class="filter-title">Filters</div>
+                    <div class="filters-container">
+                        <div class="filter" v-for="item in filterable">
+                            <check :id="`${item}_filter_check`" 
+                            v-model="formVariables[`${item}_filter_check`]"
+                            @changed="search"/>
+                            <div class="filtername">{{item}}</div>
+                            <dropdown :id="`${item}_filter`" 
+                            v-model="formVariables[`${item}_filter`]"
+                            :selection="filterableOptions[`${item}`]"
+                            @changed="search"/>
+                        </div>
                     </div>
                 </div>
-                <div class="filter-title">Sort by</div>
-                <div class="filters-container">
-                    <div class="filter" v-for="item in sortable">
-                        <check :id="`${item}_sort_check`" 
-                        v-model="formVariables[`${item}_sort_check`]"
-                        @changed="search"
-                        />
-                        <div class="filtername">{{item}}</div>
-                        <dropdown :id="`${item}_sort`" 
-                        v-model="formVariables[`${item}_sort`]"
-                        :selection="sortableOptions"
-                        @changed="search"/>
+                <div>
+                    <div class="filter-title">Sort by</div>
+                    <div class="filters-container">
+                        <div class="filter" v-for="item in sortable">
+                            <check :id="`${item}_sort_check`" 
+                            v-model="formVariables[`${item}_sort_check`]"
+                            @changed="search"
+                            />
+                            <div class="filtername">{{item}}</div>
+                            <dropdown :id="`${item}_sort`" 
+                            v-model="formVariables[`${item}_sort`]"
+                            :selection="sortableOptions"
+                            @changed="search"/>
+                        </div>
                     </div>
                 </div>
-                <div class="filter-title">Available Feilds</div>
-                <div class="feilds-container">
-                    <div class="feild" v-for="item in availableFeilds">
-                        <check :id="`${item}_attribute_check`" 
-                        v-model="formVariables[`${item}_attribute_check`]"
-                        @changed="search"/>
-                        <div class="filtername">{{item}}</div>
+                <div>
+                    <div class="filter-title">Available Feilds</div>
+                    <div class="feilds-container">
+                        <div class="feild" v-for="item in availableFeilds">
+                            <check :id="`${item}_attribute_check`" 
+                            v-model="formVariables[`${item}_attribute_check`]"
+                            @changed="search"/>
+                            <div class="filtername">{{item}}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -60,15 +72,18 @@
 <script>
 import settingsModal from './settingsModal.vue'
 import searchbar from './searchbar.vue'
+import searchDropdown from './searchDropdown.vue'
+
 import dropdown from './dropdown.vue'
 import check from './check.vue'
 import searchesTable from './searchesTable.vue'
 
 import { MeiliSearch } from 'meilisearch'
+import { createCacheExpression } from '@vue/compiler-core'
 
 export default {
   name: "dev",
-  components: { settingsModal, searchbar, dropdown, check, searchesTable},
+  components: { settingsModal, searchbar, searchDropdown, dropdown, check, searchesTable},
   data(){
     return{
         /* meilisearch setup */
@@ -77,7 +92,7 @@ export default {
             host: "",
             index:""
         },
-        index: {},
+        indexes: [],
         /* setup for form variables */
         filterable:[],
         filterableOptions: {},
@@ -104,9 +119,12 @@ export default {
     async init(host,index){
         try{
             const client = new MeiliSearch({"host": host})
+            this.indexes = []
+            await client.getIndexes()['results'].forEach(item=>{this.indexes.push(item['uid'])})
             this.index   = client.index(index)
             this.filterable        = await this.index.getFilterableAttributes()
             this.sortable          = await this.index.getSortableAttributes()
+            this.selectedFeilds    = [...this.filterable, ...this.sortable]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
             this.filterableOptions =
             {
@@ -169,6 +187,7 @@ export default {
     async search(){
         console.log("searching")   
         await this.updateFilters()     
+        /* fake data */
         this.searchData = [...this.filters, ...this.sorts, this.searchString]
         this.searchData = {
                             "hits": [
@@ -194,14 +213,16 @@ export default {
                             "query": "american "
                             }
 
-        /* search db 
-        this.searchData  = await this.index.search(
-            this.searchString,
-            {
-                filter: this.filters,
-                sort: this.sorts
-            }
-        )
+        /*search db */
+        try{
+            this.searchData  = await this.index.search(
+                this.searchString,
+                {
+                    filter: this.filters,
+                    sort: this.sorts
+                }
+            )
+        }catch{}
         /* populate searches */
 
     }
@@ -221,38 +242,42 @@ export default {
 }
 .title-container{
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: calc(100% - 30px) 30px;
 }
 .settings {
-    padding: 5px;
     font-size: 25px;
-    justify-self: right;
-    padding-right: 5%;
+    align-self: center;
 }
-
 .settings:hover {
     opacity: .8;
 }
-
 .title{
+    padding-left: 20px;
     margin-top:0px;
+    margin-left:5px;
     text-align:center;
     font-size:35px;
-    justify-self: right;
 }
 .sub-title{
     text-align:center;
     color: grey;
     font-size:18px;
 }
+.searchbar-container{
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-gap: 10px;
+    justify-items: left;
+    justify-content: left;
+    margin: 10px;
+}
 .filter-results-filter-container{
     display: grid;
-    grid-template-columns: 360px auto;
+    grid-template-columns: auto;
     grid-gap: 10px;
-    margin-left:5px;
+    margin-left:10px;
     margin-right:10px;
 }
-
 @media only screen and (max-width: 600px) {
     .filter-results-filter-container{
         grid-template-columns: auto;
@@ -262,7 +287,6 @@ export default {
     background: #161b22;
     border-radius: 5px 5px 5px 5px;
     border: 1px solid #30363d;
-    width:350px;
 }
 
 .filters-container{

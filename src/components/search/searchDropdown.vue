@@ -1,8 +1,8 @@
 <template>
     <div>
-      <select v-model="localValue" class="dropdown">
-          <option v-for="item in selection" :value="item" >{{item}}</option>  
-      </select>
+        <select v-model="localValue" class="dropdown">
+            <option v-for="item in selection" :value="item" >{{item}}</option>  
+        </select>
     </div>
 </template>
 
@@ -55,8 +55,17 @@ export default {
 </script>
 
 <style scoped>
- .dropdown{
-    width: 125px;
+.dropdown{
     overflow: hidden;
+    padding: 5px;
+    font-size: 25px;
+    border-radius: 5px;
+    border: 1px solid #30363d;
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: inherit;
+}
+.dropdown:focus{
+    outline: none;
 }
 </style>

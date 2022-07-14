@@ -1,9 +1,7 @@
 <template>
     <div>
-        <div class="searchbar-container">
-            <input v-model="localValue" class="searchbar"  
-            placeholder="search"/>
-        </div>
+        <input v-model="localValue" class="searchbar"  
+        placeholder="search"/>
     </div>
 </template>
 
@@ -54,12 +52,6 @@ export default {
 </script>
 
 <style scoped>
-.searchbar-container{
-    display: grid;
-    justify-items: center;
-    justify-content: center;
-    margin: 10px;
-}
 .searchbar{
     width: 500px;
     padding: 5px;
@@ -73,7 +65,7 @@ export default {
 }
 @media only screen and (max-width: 600px) {
     .searchbar{
-        width: 300px;
+        width: 200px;
     }
 }
 .searchbar:focus{
