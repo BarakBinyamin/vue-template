@@ -130,7 +130,7 @@ export default {
             this.filterableOptions = {}
         }
         catch (err){
-            console.log(err)
+            console.log("INIT:",err)
             this.filterable        = ["foo","bar"]
             this.sortable          = ["date","valuation"]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
