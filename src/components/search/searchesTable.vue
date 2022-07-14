@@ -42,7 +42,7 @@ export default {
   watch: {
     selectedFeilds:function(value){
       this.feilds = value
-      tihs.getData()
+      this.getData()
     }
   }
 }
