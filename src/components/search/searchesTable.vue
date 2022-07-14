@@ -1,7 +1,7 @@
 <template>
     <div class="searches">
       <div class="th" v-for="feild in feilds">{{feild}}</div>
-      <div  class="item" v-for="item in getData()">
+      <div  class="item" v-for="item in results">
           {{item}}
       </div>
     </div>
@@ -13,7 +13,8 @@ export default {
   props: ["searchData", "selectedFeilds"],
   data() {
     return {
-      feilds: this.selectedFeilds
+      feilds: this.selectedFeilds,
+      results : []
     }
   },
   created(){
@@ -28,8 +29,10 @@ export default {
             hits.push(item[feild])
           })
         })
-      }catch{}
-      return hits 
+      }catch(err){
+        console.log("searchesTable:",err)
+      }
+      this.results = hits 
     },
     max(){
       document.documentElement.style.setProperty('--searchesTable', 
@@ -39,6 +42,7 @@ export default {
   watch: {
     selectedFeilds:function(value){
       this.feilds = value
+      tihs.getData()
     }
   }
 }
