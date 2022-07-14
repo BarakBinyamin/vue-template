@@ -15,7 +15,7 @@
         <searchDropdown id="index" 
         v-model="meilisearchsettings[`index`]"
         :selection="indexes"
-        @changed="search"/>
+        @changed="init()"/>
     </div>
     <div class="filter-results-filter-container">
         <div name="filters">
@@ -79,7 +79,6 @@ import check from './check.vue'
 import searchesTable from './searchesTable.vue'
 
 import { MeiliSearch } from 'meilisearch'
-import { createCacheExpression } from '@vue/compiler-core'
 
 export default {
   name: "dev",
