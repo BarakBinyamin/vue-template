@@ -110,17 +110,22 @@ export default {
     }
   },
   async mounted(){
-    await this.init(this.meilisearchsettings['host'],this.meilisearchsettings['index'])
+    await this.init()
     await this.updateFilters()
     this.search()
   },
   methods: {
-    async init(host,index){
+    async init(){
         try{
+            /* connect to host, init index options */
+            const host  = this.meilisearchsettings['host']
             const client = new MeiliSearch({"host": host})
             this.indexes = []
             const results = await client.getIndexes()
             results.forEach(item=>{this.indexes.push(item['uid'])})
+            
+            /* connect to index, init content settings options */
+            const index = this.meilisearchsettings['index']
             this.index   = client.index(index)
             this.filterable        = await this.index.getFilterableAttributes()
             this.sortable          = await this.index.getSortableAttributes()
