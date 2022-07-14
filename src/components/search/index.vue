@@ -216,8 +216,8 @@ export default {
             this.searchData  = await this.index.search(
                 this.searchString,
                 {
-                    filter: this.filters,
-                    sort: this.sorts
+                    filter: [],
+                    sort: []
                 }
             )
             console.log(this.searchData)
