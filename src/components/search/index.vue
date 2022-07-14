@@ -111,8 +111,6 @@ export default {
   },
   async mounted(){
     await this.init()
-    await this.updateFilters()
-    this.search()
   },
   methods: {
     async init(){
@@ -123,19 +121,24 @@ export default {
             this.indexes = []
             const results = await client.getIndexes()
             results.forEach(item=>{this.indexes.push(item['uid'])})
-            
+
             /* connect to index, init content settings options */
-            const index = this.meilisearchsettings['index']
-            this.index   = client.index(index)
-            this.filterable        = await this.index.getFilterableAttributes()
-            this.sortable          = await this.index.getSortableAttributes()
-            this.selectedFeilds    = [...this.filterable, ...this.sortable]
-            //this.availableFeilds   = ["foo","bar","date","valuation"]
-            this.filterableOptions = {}
-            console.log(this.selectedFeilds)
+            try{
+                const index = this.meilisearchsettings['index']
+                this.index  = client.index(index)
+                this.filterable        = await this.index.getFilterableAttributes()
+                this.sortable          = await this.index.getSortableAttributes()
+                this.selectedFeilds    = [...this.filterable, ...this.sortable]
+                this.filterableOptions = {}
+                //this.availableFeilds   = ["foo","bar","date","valuation"]
+                console.log(this.selectedFeilds)
+            }
+            catch(err){
+                console.log("INIT index connection error:",err)
+            }
         }
         catch (err){
-            console.log("INIT:",err)
+            console.log("INIT host connection error:",err)
             this.filterable        = ["foo","bar"]
             this.sortable          = ["date","valuation"]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
@@ -145,6 +148,8 @@ export default {
                 "bar" : ["u", "liu", "chi", "ba", "jo"]
             }
         }
+        await this.updateFilters()
+        this.search()
     },
     async updateFilters(update=false){
         const form         = this.formVariables
@@ -218,6 +223,7 @@ export default {
 
         /*search db */
         try{
+            console.log("SORTS and FILTERS:",this.sorts,this.filters)
             this.searchData  = await this.index.search(
                 this.searchString,
                 {
