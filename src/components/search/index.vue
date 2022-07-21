@@ -5,7 +5,7 @@
             <div class="title">The WayBack</div>
             <div class="settings" @click="meilisearchsettings['show']=true">⚙️</div>
             <settingsModal v-model="meilisearchsettings"
-            @changed="init" :toggle="meilisearchsettings['show']"/>
+            @changed="updateHost" :toggle="meilisearchsettings['show']"/>
         </div>
         <div class="sub-title">Powered by Meilisearch</div>
     </div>
@@ -15,7 +15,7 @@
         <searchDropdown id="index" 
         v-model="meilisearchsettings[`index`]"
         :selection="indexes"
-        @changed="init()"/>
+        @changed="init"/>
     </div>
     <div class="filter-results-filter-container">
         <div name="filters">
@@ -103,7 +103,7 @@ export default {
         /* Output of form used to search */
         sorts:[],
         filters:[],
-        selectedFeilds:["id","release_date","title","poster", "overview"],
+        selectedFeilds:[],
         searchString:"",
         /* output of the search */
         searchData: {}
@@ -113,6 +113,9 @@ export default {
     await this.init()
   },
   methods: {
+    async updateHost(host){
+        this.init()
+    },
     async init(){
         try{
             /* connect to host, init index options */
@@ -121,15 +124,14 @@ export default {
             const client = new MeiliSearch({"host": host})
             console.log("Host",host)
 
-            this.indexes = []
-            const url   = host  + "/indexes/"
-            let results = await (await fetch(url)).json()
-            results= results['results']
-            results.forEach(item=>{this.indexes.push(item['uid'])})
+            this.indexes = await client.getRawIndexes().then(res => {
+                return res['results'].map(item => item['uid'])
+            })
 
             /* connect to index, init content settings options */
             try{
                 const index = this.meilisearchsettings['index']
+                console.log("index is ", index)
                 if (index){
                     this.index  = client.index(index)
                     this.filterable        = await this.index.getFilterableAttributes()
@@ -141,19 +143,21 @@ export default {
                 }
             }
             catch(err){
-                console.log("INIT index connection error:",err)
+                console.log("index is invaid")
             }
         }
         catch (err){
-            console.log("INIT host connection error:",err)
-            this.filterable        = ["foo","bar"]
+            console.log("Host didn't connect")
+            this.index  = {}
+            this.selectedFeilds = []
+            /*this.filterable        = ["foo","bar"]
             this.sortable          = ["date","valuation"]
             //this.availableFeilds   = ["foo","bar","date","valuation"]
-            this.filterableOptions =
+            /*this.filterableOptions =
             {
                 "foo" : ["e", "er", "san", "su"],
                 "bar" : ["u", "liu", "chi", "ba", "jo"]
-            }
+            }*/
         }
         await this.updateFilters()
         this.search()
@@ -202,48 +206,18 @@ export default {
     async search(){
         console.log("searching")   
         await this.updateFilters()     
-        /* fake data
-        this.searchData = [...this.filters, ...this.sorts, this.searchString]
-        this.searchData = {
-                            "hits": [
-                                {
-                                "id": 2770,
-                                "title": "American Pie 2",
-                                "poster": "https://image.tmdb.org/t/p/w1280/q4LNgUnRfltxzp3gf1MAGiK5LhV.jpg",
-                                "overview": "The whole gang are back and as close as ever. They decide to get even closer by spending the summer together at a beach house. They decide to hold the biggest",
-                                "release_date": 997405200
-                                },
-                                {
-                                "id": 190859,
-                                "title": "American Sniper",
-                                "poster": "https://image.tmdb.org/t/p/w1280/svPHnYE7N5NAGO49dBmRhq0vDQ3.jpg",
-                                "overview": "U.S. Navy SEAL Chris Kyle takes his sole mission—protect his comrades—to heart and becomes one of the most lethal snipers in American history. His pinpoint accuracy not only saves countless lives but also makes him a prim",
-                                "release_date": 1418256000
-                                }
-                            ],
-                            "offset": 0,
-                            "limit": 20,
-                            "estimatedTotalHits": 976,
-                            "processingTimeMs": 35,
-                            "query": "american "
-                            }
-
-        /*search db */
         try{
-            console.log("SORTS and FILTERS:",this.sorts,this.filters)
             this.searchData  = await this.index.search(
                 this.searchString,
                 {
-                    filter: [],
-                    sort: []
+                    filter: this.filters,
+                    sort: this.sorts
                 }
             )
-            console.log(this.searchData['hits'])
         }catch(err){
-            console.log(err)
+            this.searchData = ""
+            console.log("didn't work")
         }
-        /* populate searches */
-
     }
   }
 }

@@ -28,7 +28,7 @@ export default {
           })
         })
       }catch(err){
-        console.log("searchesTable:",err)
+        console.log("searchData bad format")
       }
       this.results = hits 
     },

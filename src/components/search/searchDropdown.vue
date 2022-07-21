@@ -26,8 +26,11 @@ export default {
   data() {
     return {
         storageName : this.id,
-        localValue: this.init()
+        localValue: ""
     }
+  },
+  mounted(){
+    this.init()
   },
   methods:{
     init() {
@@ -36,10 +39,10 @@ export default {
         const defaultSelction = this.selection[0]
         if (state){
             this.$emit("update:modelValue", state)
-            return state
+            this.localValue = state
         }else{
             this.$emit("update:modelValue", defaultSelction)
-            return defaultSelction
+            this.localValue = defaultSelction
         }
     }
   },
@@ -50,6 +53,10 @@ export default {
         this.$emit("changed", this.localValue)
         this.$cookies.set(this.storageName, this.localValue)
       },
+      selection: function(){
+        console.log("selection changed")
+        this.init()
+      }
   }
 }
 </script>

@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import dev from './components/search/index.vue'
+import dev from './components/dev/index.vue'
 
 export default {
   components: { dev },
