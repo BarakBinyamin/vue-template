@@ -111,7 +111,7 @@ export default{
             },
             /* Form to add filters and sorts */
             form:{
-                filterSelected: "",
+                filter: "",
                 filterOperator: "",
                 filterValue: "",
                 sort: "",
@@ -153,11 +153,13 @@ export default{
             const client   = this.configuration['client']
             const response = await client.getRawIndexes()
             let indexes    = []
-            response['results'].forEach(index =>{
-                indexes.push(index['uid'])
-            })
-            indexes = response['results'].map(index => index['uid'])
-            this.options['indexes'] = indexes
+            try{
+                indexes = response['results'].map(index => index['uid'])
+                this.options['indexes'] = indexes
+            }catch{
+                indexes = response.map(index => index['uid'])
+                this.options['indexes'] = indexes
+            }
         },
         async clearConfigurations(){
 
@@ -189,7 +191,7 @@ export default{
             }
         },
         addFilter(){
-            const filter         = this.form['filterSelected']
+            const filter         = this.form['filter']
             const filterOperator = this.form['filterOperator']
             const filterValue    = this.form['filterValue']
             const filterstring   = filter + filterOperator + filterValue
@@ -206,6 +208,7 @@ export default{
         removeSortFilter(item){
             this.configuration['sorts']   = this.configuration['sorts'].filter(e => e !== item);
             this.configuration['filters'] = this.configuration['filters'].filter(e => e !== item);
+            this.search()
         },
         async clearOptions(){
             const hostname       = this.options['host']
