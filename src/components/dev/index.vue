@@ -200,7 +200,7 @@ export default{
         },
         addSort(){
             const sort       = this.form['sort']
-            const direction  = this.form['direction']=="Ascending" ? "asc" : "desc"
+            const direction  = this.form['direction']==="Ascending" ? "asc" : "desc"
             const sortstring = sort + ":" + direction
             this.configuration['sorts'].push(sortstring)
             this.search()
