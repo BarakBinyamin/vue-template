@@ -160,6 +160,7 @@ export default{
                 indexes = response.map(index => index['uid'])
                 this.options['indexes'] = indexes
             }
+            this.search()
         },
         async clearConfigurations(){
 
