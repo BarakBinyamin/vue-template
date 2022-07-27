@@ -222,7 +222,7 @@ export default{
                 const results  = await index.search(
                     this.configuration['search'],
                     {
-                        filter: this.configuration['filters'],
+                        filter: [...this.configuration['filters'],"type=search"],
                         sort: this.configuration['sorts']
                     }
                 )
