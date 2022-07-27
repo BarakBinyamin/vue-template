@@ -8,8 +8,53 @@
             </select>
 
             <input @keydown="search" v-model="configuration['search']"/>
-            <div class="right-padding"></div>
-        </div>
+
+            <div class="sorts-and-filters">
+                <span>Sorts & Filters</span>
+                <div class="dropdown-content">
+                    <h3>Filter by</h3>
+                    <div class="filter-sort-form">
+                        <select v-model="options['filter']" class="select-index">
+                            <option v-for="item in options['filterable']" :value="item">{{item}}</option>  
+                        </select>
+                        <select v-model="form['filterOperator']" class="select-index">
+                            <option>=</option>  
+                            <option>></option> 
+                            <option>{{'<'}}</option> 
+                        </select>
+                        <select v-model="form['filterValue']" class="select-index">
+                            <option v-for="item in options['filterable']" :value="item">{{item}}</option>  
+                        </select>
+                        <button @click="addFilter()" class="add-filter" type="submit">Add +</button>
+                    </div>
+                    <h3>Sort by</h3>
+                    <div class="filter-sort-form">
+                        <select v-model="options['sort']" class="select-index">
+                            <option v-for="item in options['sortable']" :value="item">{{item}}</option>  
+                        </select>
+                        <select v-model="form['index']" class="select-index">
+                            <option>Ascending</option>  
+                            <option>Descending</option> 
+                        </select>
+                        <button @click="addSort()" class="add-filter" type="submit">Add +</button>
+                    </div>
+                    <div class="filter-bubbles">
+                        <div v-for="filter in configuration['filters']">
+                            <div @click="removeSortFilter(filter)" class="filter-bubble"> 
+                                <div class="name">{{filter}}</div>
+                                <div class="delete">X</div>
+                            </div>
+                        </div>
+                        <div v-for="sort in configuration['sorts']">
+                            <div @click="removeSortFilter(sort)" class="filter-bubble"> 
+                                <div class="name">{{sort}}</div>
+                                <div class="delete">X</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
             <!-- dropdown filters
                 <select v-model="options['filter']" class="dropdown">
                 <option v-for="item in options['filters']" :value="item">{{item}}</option>  
@@ -64,6 +109,14 @@ export default{
                 filters: [],
                 sortable:[]
             },
+            /* Form to add filters and sorts */
+            form:{
+                filterSelected: "",
+                filterOperator: "",
+                filterValue: "",
+                sortSelected: "",
+                direction:""
+            },
             results:[]
         }
     },
@@ -106,9 +159,41 @@ export default{
             this.options['indexes'] = indexes
         },
         async clearConfigurations(){
+
+        },
+        async getAttributes(){
             this.configuration = {}
-            //dev
-            this.configuration['feilds'] = ['id', 'poster']
+            try{
+                const index    = this.configuration['index']
+                const results  = await index.search(
+                    "",
+                    {
+                        filter: ["type=attribute"]
+                    }
+                )
+                this.options['attributes'] = results['hits']
+            }catch(err){
+                this.options['attributes'] = []
+                console.log("failed to retreive attributes")
+            }
+            this.configuration['feilds'] = this.options['attributes'].map(index => index['shortname'])
+        },
+        addFilter(){
+            const filter         = this.form['filterSelected']
+            const filterOperator = this.form['filterOperator']
+            const filterValue    = this.form['filterValue']
+            const filterstring   = filter + filterOperator + filterValue
+            this.configuration['filters'].push(filterstring)
+        },
+        addSort(){
+            const sort       = this.form['sortSelected']
+            const direction  = this.form['direction']=="ascending" ? "asc" : "desc"
+            const sortstring = sort + ":" + direction
+            this.configuration['sorts'].push(sortstring)
+        },
+        removeSortFilter(item){
+            this.configuration['sorts']   = this.configuration['sorts'].filter(e => e !== item);
+            this.configuration['filters'] = this.configuration['filters'].filter(e => e !== item);
         },
         async clearOptions(){
             const hostname       = this.options['host']
@@ -147,9 +232,12 @@ export default{
 }
 </script>
 <style>
+html{
+    background: white;
+}
 .top-bar{
     display:grid;
-    grid-template-columns: repeat(4,fit-content(100%));
+    grid-template-columns: repeat(5,fit-content(100%));
 }
 .page{
     padding: 5px;
@@ -171,10 +259,6 @@ export default{
     height: 30px;
     padding: 5px;
 }
-
-th{
-   text-align: left; 
-}
 input{
     margin: 5px;
     padding: 5px;
@@ -183,10 +267,90 @@ input{
 input:focus{
     outline: none;
 }
+
+.sorts-and-filters {
+  position: relative;
+  display: inline-block;
+  background: whitesmoke;
+  margin: 5px;
+  height: 20px;
+  padding:5px;
+  z-index: 100;
+}
+
+.dropdown-content {
+  /*display: none;*/
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 200px;
+  width: max-content;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+  z-index: 1;
+  left:0;
+  padding-top: 10px;
+  display: inline-block;
+}
+
+.filter-sort-form{
+    display: grid;
+    grid-template-columns: repeat(5,auto);
+    grid-gap:10px;
+}
+.add-filter{
+    height: 30px;
+    padding:5px;
+    margin: 5px;
+    width: 50px;
+}
+
+.filter-bubbles{
+    margin-top: 5px;
+    display: grid;
+    grid-template-columns: repeat(2,auto);
+    grid-gap: 5px;
+}
+.filter-bubble{
+    border-radius: 5px;
+    padding: 5px;
+    display: grid;
+    grid-template-columns: repeat(2,fit-content(100%));
+    background: rgba(0,0,0,.2);
+    width: max-content;
+}
+.filter-bubble > .name{
+    padding-right: 5px;
+}
+.filter-bubble > .delete{
+    color: blue;
+}
+.filter-bubble > .delete:hover{
+    color: red;
+}
+
+
+th{
+   text-align: left; 
+}
 table{
   -webkit-user-select: text;
   -ms-user-select: text;
   user-select: text; 
   color: whitesmoke;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid grey;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: rgba(52, 152, 219,.4)/*rgba(82, 124, 242,.4);*/
 }
 </style>
