@@ -141,7 +141,7 @@ export default{
                 try{
                     const indexName             = this.options['index']
                     this.configuration['index'] = client.index(indexName)
-                    //this.getOptions() /*update options for the index*/
+                    this.getOptions() /*update options for the index*/
                 }
                 catch{
                     console.log("index configuration failed")
