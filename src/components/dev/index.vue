@@ -32,7 +32,7 @@
                         <select v-model="form['sort']" class="select-index">
                             <option v-for="item in options['sortable']" :value="item">{{item}}</option>  
                         </select>
-                        <select v-model="form['index']" class="select-index">
+                        <select v-model="form['direction']" class="select-index">
                             <option>Ascending</option>  
                             <option>Descending</option> 
                         </select>
