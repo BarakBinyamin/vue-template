@@ -1,15 +1,21 @@
 <template>
     <div class="page">
-        <div class="status" :class="{greenStatus : configuration['connection']}"></div>
-        <input  @change="initHost" v-model="options['host']"/>
-        <select @change="initIndex" v-model="options['index']" class="dropdown">
-            <option v-for="item in options['indexes']" :value="item">{{item}}</option>  
-        </select>
-        <div></div>
-        <!--<select v-model="options['filter']" class="dropdown">
-            <option v-for="item in options['filters']" :value="item">{{item}}</option>  
-        </select>-->
-        <input @keydown="search" v-model="configuration['search']"/>
+        <div class="top-bar">
+            <div class="status" :class="{greenStatus : configuration['connection']}"></div>
+            <input  @change="initHost" v-model="options['host']"/>
+            <select @change="initIndex" v-model="options['index']" class="select-index">
+                <option v-for="item in options['indexes']" :value="item">{{item}}</option>  
+            </select>
+
+            <input @keydown="search" v-model="configuration['search']"/>
+            <div class="right-padding"></div>
+        </div>
+            <!-- dropdown filters
+                <select v-model="options['filter']" class="dropdown">
+                <option v-for="item in options['filters']" :value="item">{{item}}</option>  
+            </select>
+            -->
+
         <table>
             <tr>
                 <th v-for="feild in configuration['feilds']">{{feild}}</th>
@@ -29,6 +35,7 @@
             </div>
             <input type="submit" value="submit"/>
         </div>-->
+        
     </div>
 </template>
 
@@ -38,6 +45,7 @@ import { MeiliSearch } from 'meilisearch'
 export default{
     data(){
         return{
+            /* Objects, what's set */
             configuration:{
                 client: "",
                 index: "",
@@ -47,6 +55,7 @@ export default{
                 sorts:[],
                 search: ""
             },
+            /* Strings, whats available */
             options:{
                 host:"",
                 indexes: [],
@@ -60,7 +69,7 @@ export default{
     },
     methods:{
         async initHost(){
-            await this.clearConfigurations()
+            await this.clearConfigurations("host")
             await this.clearOptions()
             try{
                 const hostname               = this.options['host']
@@ -84,11 +93,12 @@ export default{
                     console.log("index configuration failed")
                 }
             }
+            this.search()
         },
         async getIndexes(){
             const client   = this.configuration['client']
             const response = await client.getRawIndexes()
-            let indexes    = []//await client.getIndexes()
+            let indexes    = []
             response['results'].forEach(index =>{
                 indexes.push(index['uid'])
             })
@@ -137,10 +147,9 @@ export default{
 }
 </script>
 <style>
-html{
-    color:white;
-    align-items: center;
-    justify-content: center;
+.top-bar{
+    display:grid;
+    grid-template-columns: repeat(4,fit-content(100%));
 }
 .page{
     padding: 5px;
@@ -148,6 +157,7 @@ html{
 .status{
     border-radius: 100%;
     display: inline-block;
+    margin-top: 15px;
     background: red;
     width: 10px;
     height: 10px;
@@ -156,12 +166,19 @@ html{
 .greenStatus{
     background: green;
 }
+.select-index{
+    margin-top: 5px;;
+    height: 30px;
+    padding: 5px;
+}
+
 th{
    text-align: left; 
 }
 input{
     margin: 5px;
     padding: 5px;
+    max-width: 200px;
 }
 input:focus{
     outline: none;
@@ -170,5 +187,6 @@ table{
   -webkit-user-select: text;
   -ms-user-select: text;
   user-select: text; 
+  color: whitesmoke;
 }
 </style>
