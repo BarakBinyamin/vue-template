@@ -29,7 +29,7 @@
                     </div>
                     <h3>Sort by</h3>
                     <div class="filter-sort-form">
-                        <select v-model="options['sort']" class="select-index">
+                        <select v-model="form['sort']" class="select-index">
                             <option v-for="item in options['sortable']" :value="item">{{item}}</option>  
                         </select>
                         <select v-model="form['index']" class="select-index">
@@ -114,7 +114,7 @@ export default{
                 filterSelected: "",
                 filterOperator: "",
                 filterValue: "",
-                sortSelected: "",
+                sort: "",
                 direction:""
             },
             results:[]
@@ -141,6 +141,7 @@ export default{
                 try{
                     const indexName             = this.options['index']
                     this.configuration['index'] = client.index(indexName)
+                    //this.getOptions() /*update options for the index*/
                 }
                 catch{
                     console.log("index configuration failed")
@@ -161,8 +162,8 @@ export default{
         async clearConfigurations(){
 
         },
-        async getAttributes(){
-            this.configuration = {}
+        async getOptions(){
+            /* get attributes */
             try{
                 const index    = this.configuration['index']
                 const results  = await index.search(
@@ -171,12 +172,21 @@ export default{
                         filter: ["type=attribute"]
                     }
                 )
-                this.options['attributes'] = results['hits']
+                this.options['attributes']     = results['hits']
+                this.configuration['feilds']   = this.options['attributes'].map(index => index['shortname'])
             }catch(err){
                 this.options['attributes'] = []
                 console.log("failed to retreive attributes")
             }
-            this.configuration['feilds'] = this.options['attributes'].map(index => index['shortname'])
+            /* get filterable and sortable attributes */
+            try{
+                const index    = this.configuration['index']
+                this.options['filterable'] = await index.getFilterableAttributes()
+                this.options['sortable']   = await index.getSortableAttributes()
+            }
+            catch(err){
+                console.log("failed to retreive sorts and filters")
+            }
         },
         addFilter(){
             const filter         = this.form['filterSelected']
@@ -184,12 +194,14 @@ export default{
             const filterValue    = this.form['filterValue']
             const filterstring   = filter + filterOperator + filterValue
             this.configuration['filters'].push(filterstring)
+            this.search()
         },
         addSort(){
-            const sort       = this.form['sortSelected']
+            const sort       = this.form['sort']
             const direction  = this.form['direction']=="ascending" ? "asc" : "desc"
             const sortstring = sort + ":" + direction
             this.configuration['sorts'].push(sortstring)
+            this.search()
         },
         removeSortFilter(item){
             this.configuration['sorts']   = this.configuration['sorts'].filter(e => e !== item);
