@@ -175,7 +175,7 @@ export default{
                     }
                 )
                 this.options['attributes']     = results['hits']
-                this.configuration['feilds']   = this.options['attributes'].map(index => index['shortname'])
+                this.configuration['feilds']   = this.options['attributes'].map(index => index['Short_Name'])
             }catch(err){
                 this.options['attributes'] = []
                 console.log("failed to retreive attributes")
@@ -200,7 +200,7 @@ export default{
         },
         addSort(){
             const sort       = this.form['sort']
-            const direction  = this.form['direction']=="ascending" ? "asc" : "desc"
+            const direction  = this.form['direction']=="Ascending" ? "asc" : "desc"
             const sortstring = sort + ":" + direction
             this.configuration['sorts'].push(sortstring)
             this.search()
